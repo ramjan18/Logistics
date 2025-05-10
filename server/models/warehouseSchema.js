@@ -1,14 +1,39 @@
+// models/Warehouse.js
+
 const mongoose = require("mongoose");
 
 const warehouseSchema = new mongoose.Schema({
-  name: String,
-  location: String,
-  inventory: [{
-    item: String,
-    quantity: Number
-  }]
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  address: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  location: {
+    lat: {
+      type: Number,
+      // required: true,
+    },
+    lng: {
+      type: Number,
+      // required: true,
+    },
+  },
+  capacity:{
+    type : Number,
+  },
+  currentStock: {
+    type: Number,
+    default: 0,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-const warehouse = mongoose.model('warehouse',warehouseSchema)
-module.exports = warehouse
-
+module.exports = mongoose.model("Warehouse", warehouseSchema);

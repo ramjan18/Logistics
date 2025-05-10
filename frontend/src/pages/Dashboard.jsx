@@ -1,125 +1,188 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
+  Typography,
+  Stack,
+  Paper,
   Grid,
   Card,
   CardContent,
-  Typography,
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
 } from "@mui/material";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
+import axios from "../utils/axios";
+
+// Custom colors for each status
+const COLORS = ["#FF9800", "#2196F3", "#FFC107", "#4CAF50", "#F44336"];
 
 const Dashboard = () => {
-  const [shipmentStats, setShipmentStats] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    pending: 0,
+    dispatched: 0,
+    inTransit: 0,
+    delivered: 0,
+    cancelled: 0,
+  });
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const shipmentRes = await axios.get("http://localhost:5000/api/analytics/shipments", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const inventoryRes = await axios.get("http://localhost:5000/api/analytics/inventory", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // Safe checks to ensure data is in array format
-        setShipmentStats(Array.isArray(shipmentRes.data) ? shipmentRes.data : []);
-        setInventory(Array.isArray(inventoryRes.data) ? inventoryRes.data : []);
-      } catch (err) {
-        console.error("Analytics fetch error:", err);
-        setShipmentStats([]);
-        setInventory([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnalytics();
+    fetchStats();
   }, []);
 
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get("/getAllBookShipments");
+      const bookings = res.data.data;
+      const statusCounts = {
+        pending: 0,
+        dispatched: 0,
+        inTransit: 0,
+        delivered: 0,
+        cancelled: 0,
+      };
+
+      bookings.forEach((b) => {
+        const status = b.status?.toLowerCase();
+        switch (status) {
+          case "pending":
+            statusCounts.pending++;
+            break;
+          case "dispatched":
+            statusCounts.dispatched++;
+            break;
+          case "in-transit":
+          case "intransit":
+            statusCounts.inTransit++;
+            break;
+          case "delivered":
+            statusCounts.delivered++;
+            break;
+          case "cancelled":
+          case "canceled":
+            statusCounts.cancelled++;
+            break;
+          default:
+            break;
+        }
+      });
+
+      setStats(statusCounts);
+    } catch (err) {
+      console.error("Error fetching booking stats:", err);
+    }
+  };
+
+  const orderData = [
+    { label: "Pending", value: stats.pending },
+    { label: "Dispatched", value: stats.dispatched },
+    { label: "In Transit", value: stats.inTransit },
+    { label: "Delivered", value: stats.delivered },
+    { label: "Cancelled", value: stats.cancelled },
+  ].filter((item) => item.value > 0);
+
+  const statusCards = [
+    { label: "Pending", value: stats.pending, color: "#FF9800" },
+    { label: "Dispatched", value: stats.dispatched, color: "#2196F3" },
+    { label: "In Transit", value: stats.inTransit, color: "#FFC107" },
+    { label: "Delivered", value: stats.delivered, color: "#4CAF50" },
+    { label: "Cancelled", value: stats.cancelled, color: "#F44336" },
+  ];
+
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
-        Logistics Dashboard
+    <Box
+      sx={{
+        padding: 4,
+        minHeight: "100vh",
+        background: "linear-gradient(to right, #e0f2f1, #f1f8e9)",
+      }}
+    >
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        gutterBottom
+        align="center"
+        sx={{ color: "#333" }}
+      >
+        Dashboard Overview
       </Typography>
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" mt={5}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          {/* Summary Cards */}
-          <Grid container spacing={3}>
-            {shipmentStats.map((stat) => (
-              <Grid item xs={12} sm={4} key={stat.status}>
-                <Card sx={{ backgroundColor: "#e3f2fd" }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {stat.status}
-                    </Typography>
-                    <Typography variant="h4">{stat.count}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+      <Grid container spacing={2} mb={4} justifyContent="center">
+        {statusCards.map((item, idx) => (
+          <Grid item key={idx}>
+            <Card
+              sx={{
+                minWidth: 160,
+                borderLeft: `6px solid ${item.color}`,
+                backgroundColor: "#ffffff",
+                boxShadow: 3,
+              }}
+            >
+              <CardContent>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ color: item.color, fontWeight: "bold" }}
+                >
+                  {item.label}
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {item.value}
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
+        ))}
+      </Grid>
 
-          {/* Shipment Chart */}
-          <Box mt={5}>
-            <Typography variant="h6" gutterBottom>
-              Shipment Status Overview
-            </Typography>
-            <Card>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={shipmentStats}>
-                    <XAxis dataKey="status" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#1976d2" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Box>
+      <Paper
+        elevation={6}
+        sx={{
+          maxWidth: 700,
+          margin: "auto",
+          padding: 3,
+          borderRadius: 4,
+          backgroundColor: "#fff",
+        }}
+      >
+        <Stack alignItems="center" spacing={2}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Shipment Request Status
+          </Typography>
 
-          {/* Inventory List */}
-          <Box mt={5}>
-            <Typography variant="h6" gutterBottom>
-              Inventory Summary
-            </Typography>
-            <Card>
-              <CardContent>
-                <List>
-                  {inventory.map((item, index) => (
-                    <ListItem key={index}>
-                      <ListItemText
-                        primary={item.item}
-                        secondary={`Quantity: ${item.quantity}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Box>
-        </>
-      )}
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={orderData}
+                dataKey="value"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={120}
+                fill="#8884d8"
+                label
+              >
+                {orderData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+
+          <Typography variant="caption" color="textSecondary">
+            Order Status Breakdown
+          </Typography>
+        </Stack>
+      </Paper>
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Shipment = require('../models/shipmentSchema');
+const Shipment = require('../models/shipment');
 const Warehouse = require('../models/warehouseSchema');
 const { verifyToken } = require('../middlewares/auth');
 

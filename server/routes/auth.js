@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role,phone } = req.body;
     const data = User.findOne({email : email});
     if(!data) {
       return res.status(400).json({
@@ -16,7 +16,7 @@ router.post('/register', async (req, res) => {
       })
     }
     const hashed = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashed, role });
+    const newUser = new User({ name, email, password: hashed, role , phone});
     await newUser.save();
     res.status(201).json({ message: 'User created' });
   } catch (err) {

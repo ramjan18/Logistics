@@ -10,6 +10,7 @@ const shipmentRoutes = require('./routes/shipment');
 const warehouseRoutes = require('./routes/warehouse');
 const userRoutes = require('./routes/users');
 const analyticsRoutes = require('./routes/analytics');
+const inventoryRoutes = require('./routes/inventory')
 
 const { verifyToken } = require('./middlewares/auth');
 
@@ -46,11 +47,15 @@ io.on('connection', (socket) => {
 
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/users', verifyToken, userRoutes);
-app.use('/api/shipments',
-    verifyToken, 
+app.use('/api/users', 
+  // verifyToken,
+   userRoutes);
+app.use('/api',
+    // verifyToken, 
       shipmentRoutes);
-app.use('/api/warehouses', verifyToken, warehouseRoutes);
+app.use('/api', verifyToken, warehouseRoutes);
+
+app.use('/api', inventoryRoutes)
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

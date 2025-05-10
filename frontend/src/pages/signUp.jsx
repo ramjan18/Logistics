@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 
 const Signup = () => {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'Manager' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'Manager' , phone : "" });
   const navigate = useNavigate();
   const { setUser } = useContext(UserContext);
 
@@ -39,7 +39,11 @@ const Signup = () => {
           Sign Up
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+        >
           <TextField
             label="Name"
             value={form.name}
@@ -52,6 +56,13 @@ const Signup = () => {
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Phone"  
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
             fullWidth
             required
           />
@@ -73,8 +84,15 @@ const Signup = () => {
             {/* <MenuItem value="Admin">Admin</MenuItem> */}
             <MenuItem value="Manager">Manager</MenuItem>
             <MenuItem value="Driver">Driver</MenuItem>
+            <MenuItem value="Customer">Customer</MenuItem>
           </TextField>
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
+          >
             Sign Up
           </Button>
         </Box>
